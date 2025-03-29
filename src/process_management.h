@@ -1,10 +1,7 @@
 #ifndef PROCESS_MANAGEMENT_H
 #define PROCESS_MANAGEMENT_H
 
-#include <stdio.h>
-#include <stdlib.h>
-
-// Structure to represent a process
+// Structure representing a process.
 typedef struct {
     int pid;
     int burst_time;
@@ -12,7 +9,7 @@ typedef struct {
     float cpu_usage;
 } Process;
 
-// Function prototypes
+// Function prototypes for process management.
 int get_process_count();
 Process* get_process_list(int num_processes);
 void schedule_fcfs(Process *processes, int num_processes);

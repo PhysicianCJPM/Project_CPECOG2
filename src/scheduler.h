@@ -3,10 +3,10 @@
 
 #include "process_management.h"
 
-// Function to select the best scheduling algorithm using ANN
+// Choose the best scheduling algorithm using ANN inference.
 const char* choose_scheduling_algorithm(Process *processes, int num_processes);
 
-// Function to schedule processes dynamically
+// Schedule processes using the chosen algorithm.
 void schedule_processes(Process *processes, int num_processes);
 
 #endif // SCHEDULER_H

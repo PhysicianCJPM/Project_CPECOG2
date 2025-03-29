@@ -1,0 +1,63 @@
+# Test Cases for Intelligent Process Scheduler
+# Each test case outlines a sample workload and the expected scheduling algorithm along with its execution order.
+
+--------------------------------------------------
+Test Case 1: SJN Expected
+--------------------------------------------------
+Description:
+  - Three processes with relatively low burst times.
+  - Average CPU usage is below 0.8.
+  - Expected scheduling algorithm: SJN (Shortest Job Next)
+  
+Process List:
+  Process 1: pid=1, burst_time=3, io_wait_time=1, cpu_usage=0.5
+  Process 2: pid=2, burst_time=7, io_wait_time=2, cpu_usage=0.5
+  Process 3: pid=3, burst_time=2, io_wait_time=0, cpu_usage=0.5
+
+Expected Behavior:
+  - The ANN inference should return "SJN" because average burst time < 5.0.
+  - The scheduler should sort processes by burst_time and execute in the order:
+      Process 3 (burst_time=2) → Process 1 (burst_time=3) → Process 2 (burst_time=7)
+
+--------------------------------------------------
+Test Case 2: RR Expected
+--------------------------------------------------
+Description:
+  - Two processes with high CPU usage.
+  - Expected scheduling algorithm: RR (Round Robin)
+  
+Process List:
+  Process 1: pid=1, burst_time=8, io_wait_time=2, cpu_usage=0.9
+  Process 2: pid=2, burst_time=6, io_wait_time=3, cpu_usage=0.9
+
+Expected Behavior:
+  - The ANN inference should return "RR" since average CPU usage > 0.8.
+  - The scheduler will use Round Robin with a time quantum (e.g., 3 time units),
+    alternating between processes until both complete.
+
+--------------------------------------------------
+Test Case 3: FCFS Expected
+--------------------------------------------------
+Description:
+  - Three processes with higher burst times.
+  - Average CPU usage is moderate, and burst times are not low enough for SJN.
+  - Expected scheduling algorithm: FCFS (First-Come-First-Serve)
+  
+Process List:
+  Process 1: pid=1, burst_time=7, io_wait_time=3, cpu_usage=0.6
+  Process 2: pid=2, burst_time=8, io_wait_time=2, cpu_usage=0.6
+  Process 3: pid=3, burst_time=9, io_wait_time=1, cpu_usage=0.6
+
+Expected Behavior:
+  - The ANN inference should return "FCFS" because conditions for RR and SJN are not met.
+  - The scheduler should process the tasks in the order they appear:
+      Process 1 → Process 2 → Process 3
+
+--------------------------------------------------
+Additional Notes:
+- Use the provided process attributes to simulate inputs for testing.
+- You may implement a testing harness in C or as a shell script to create these processes in memory,
+  invoke the scheduler, and compare the printed output with the expected results.
+- For automated tests, consider capturing the scheduler output to a file and using diff or similar tools
+  to validate the output.
+
