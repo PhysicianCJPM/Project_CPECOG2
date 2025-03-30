@@ -1,18 +1,21 @@
 #!/bin/bash
-# This script collects real system metrics and process details.
-# It stores the collected data into a file for use by the ANN model.
+# This script collects Windows system metrics and process details,
+# and saves the data into "output/data.log".
 
-OUTPUT_FILE="data.log"
+# Create the output directory if it doesn't exist.
+OUTPUT_DIR="output"
+mkdir -p "$OUTPUT_DIR"
 
-echo "Collecting system metrics..."
+OUTPUT_FILE="$OUTPUT_DIR/data.log"
 
-# Capture CPU metrics from /proc/stat using top in batch mode.
+echo "Collecting Windows system metrics and process details..."
+
+# Collect CPU metrics using PowerShell (Win32_Processor's LoadPercentage)
 echo "CPU Metrics:" > "$OUTPUT_FILE"
-top -bn1 | grep "Cpu(s)" >> "$OUTPUT_FILE"
+powershell.exe -Command "Get-WmiObject -Class Win32_Processor | Select-Object -ExpandProperty LoadPercentage" >> "$OUTPUT_FILE"
 
-echo "Collecting process metrics..."
-# Capture detailed process metrics using ps.
-echo -e "\nProcess Metrics:" >> "$OUTPUT_FILE"
-ps -eo pid,comm,pcpu,pmem >> "$OUTPUT_FILE"
+# Collect Windows process list using tasklist.exe
+echo -e "\nWindows Process Metrics:" >> "$OUTPUT_FILE"
+tasklist.exe >> "$OUTPUT_FILE"
 
 echo "Data collection complete. Metrics saved to $OUTPUT_FILE."

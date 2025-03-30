@@ -1,0 +1,14 @@
+# Ignore virtual environments
+myvenv/
+venv/
+
+# Ignore output directories (if you don't need to version-control these)
+output/
+
+# Ignore build artifacts and executables
+obj/
+scheduler
+
+# Optionally ignore system files
+.DS_Store
+Thumbs.db

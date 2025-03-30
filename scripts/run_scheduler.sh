@@ -1,17 +1,14 @@
 #!/bin/bash
-# This script automates the entire process:
-# 1. Trains the ANN model using the provided Python script.
-# 2. Builds the Intelligent Process Scheduler.
-# 3. Runs the scheduler.
+# This script automates the pipeline:
+# 1. Collects fresh Windows system metrics.
+# 2. Builds the project.
+# 3. Runs the scheduler, which uses pre-trained ANN weights (ann_weights.bin) to determine the scheduling algorithm.
 
-echo "Training the ANN model..."
-python3 model/train_ann.py
-if [ $? -ne 0 ]; then
-    echo "ANN training failed. Exiting."
-    exit 1
-fi
+# Create the output directory if it doesn't exist.
+OUTPUT_DIR="output"
+mkdir -p "$OUTPUT_DIR"
 
-echo "Collecting fresh system metrics..."
+echo "Collecting fresh Windows system metrics..."
 ./scripts/data_collector.sh
 
 echo "Building the project..."
@@ -22,4 +19,5 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Running the Intelligent Process Scheduler..."
-./scheduler
+# Redirect scheduler output to output/scheduler_output.log
+./scheduler | tee "$OUTPUT_DIR/scheduler_output.log"

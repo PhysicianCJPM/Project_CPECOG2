@@ -15,7 +15,7 @@ Labels are determined using simple threshold-based logic:
     - Otherwise                     => "FCFS" (First-Come-First-Serve)
 
 The model is a small feed-forward neural network with two hidden layers.
-After training, the weights are saved to 'model/ann_weights.bin' in binary format.
+After training, the weights are saved to 'model/ann_weights.bin' in a custom binary format.
 """
 
 import os
@@ -34,18 +34,18 @@ tf.random.set_seed(42)
 # -------------------------------
 num_samples = 1000
 
-# Generate synthetic features
-cpu_usage = np.random.uniform(0.0, 1.0, num_samples)      # avg_cpu_usage: 0.0 - 1.0
-burst_time = np.random.uniform(1.0, 10.0, num_samples)      # avg_burst_time: 1.0 - 10.0
-io_wait = np.random.uniform(0.0, 5.0, num_samples)          # avg_io_wait: 0.0 - 5.0
+# Synthetic features
+cpu_usage = np.random.uniform(0.0, 1.0, num_samples)
+burst_time = np.random.uniform(1.0, 10.0, num_samples)
+io_wait = np.random.uniform(0.0, 5.0, num_samples)
 
-# Stack features into a single input matrix
+# Combine features into one input matrix
 X = np.stack((cpu_usage, burst_time, io_wait), axis=1)
 
-# Define labels based on threshold logic:
-# Label 0: "RR"   if avg_cpu_usage > 0.8
-# Label 1: "SJN"  if avg_cpu_usage <= 0.8 and avg_burst_time < 5.0
-# Label 2: "FCFS" otherwise
+# Create labels based on thresholds:
+# 0: "RR" if avg_cpu_usage > 0.8
+# 1: "SJN" if avg_cpu_usage <= 0.8 and avg_burst_time < 5.0
+# 2: "FCFS" otherwise
 y = np.zeros(num_samples, dtype=int)
 for i in range(num_samples):
     if cpu_usage[i] > 0.8:
@@ -55,7 +55,7 @@ for i in range(num_samples):
     else:
         y[i] = 2  # "FCFS"
 
-# Convert labels to one-hot encoding for training
+# Convert labels to one-hot encoding
 y_categorical = to_categorical(y, num_classes=3)
 
 # -------------------------------
@@ -73,24 +73,32 @@ model.summary()
 # -------------------------------
 # Train the Model
 # -------------------------------
-history = model.fit(X, y_categorical, epochs=50, batch_size=32, validation_split=0.2, verbose=1)
-
-# Evaluate the model on the entire dataset
+model.fit(X, y_categorical, epochs=50, batch_size=32, validation_split=0.2, verbose=1)
 loss, accuracy = model.evaluate(X, y_categorical, verbose=0)
 print("Final training accuracy: {:.2f}%".format(accuracy * 100))
 
 # -------------------------------
-# Save the Model Weights for C-based Inference
+# Save the Model Weights in a Structured Binary Format
 # -------------------------------
-# Retrieve model weights
-weights = model.get_weights()
-
-# Ensure the model directory exists
-model_dir = "model"
+# Use forward slashes to define the model directory.
+model_dir = "intelligent-process-scheduler/model"
 if not os.path.exists(model_dir):
     os.makedirs(model_dir)
 
-# Save weights as a binary file (using numpy.save which produces a .npy file)
 weights_file = os.path.join(model_dir, "ann_weights.bin")
-np.save(weights_file, weights)
+
+weights = model.get_weights()
+print("Saving weights to:", weights_file)
+print("Number of weight arrays:", len(weights))
+with open(weights_file, "wb") as f:
+    # Write the number of weight arrays as int32
+    np.array([len(weights)], dtype=np.int32).tofile(f)
+    for idx, weight in enumerate(weights):
+        print(f"Writing weight array {idx} with shape {weight.shape}")
+        # Write number of dimensions and the shape dimensions as int32
+        np.array([len(weight.shape)], dtype=np.int32).tofile(f)
+        np.array(weight.shape, dtype=np.int32).tofile(f)
+        # Write flattened weight data as float32
+        np.array(weight, dtype=np.float32).tofile(f)
+    f.flush()
 print(f"Model weights saved to {weights_file}")
